@@ -10,9 +10,9 @@ export class PaymentConfirmationPage extends BaseShopPage { //TC-001
   }
 
   async assertOrderPlaced() {
+    await this.page.waitForURL(/\/payment_done\//); // url contains payment_done
     await expect(this.orderPlacedHeading).toBeVisible(); // confirmation message is displayed
-    await expect(this.page).toHaveURL(/\/payment_done\//); // url contains payment_done
-    const url = this.page.url(); 
+    const url = this.page.url();
     const orderId = url.split('/payment_done/')[1]; //order id is visible in the url (I didnt see it on the page)
     expect(orderId).toBeTruthy();
   }

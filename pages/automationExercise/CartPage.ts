@@ -23,6 +23,11 @@ export class CartPage extends BaseShopPage { //TC-001, TC-003, TC-004
 
   async deleteFirstItem() {
     await this.cartRows.first().locator('.cart_quantity_delete').click();
+    // waitForFunction / polling assertion: wait until the row is removed from the DOM
+    await this.page.waitForFunction(() => {
+      const rows = document.querySelectorAll('#cart_info_table tbody tr');
+      return rows.length === 0;
+    });
   }
 
   async getRowCount(): Promise<number> {

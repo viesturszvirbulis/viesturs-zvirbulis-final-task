@@ -17,7 +17,5 @@ export class CheckoutPage extends BaseShopPage { //TC-001
 
   async placeOrder() {
     await this.placeOrderButton.click();
-    await this.page.waitForURL('**/payment');
   }
-  
 }
