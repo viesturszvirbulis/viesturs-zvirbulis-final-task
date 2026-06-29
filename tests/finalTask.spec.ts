@@ -11,6 +11,7 @@ import { PaymentPage } from '../pages/automationExercise/PaymentPage'; // TC-001
 import { PaymentConfirmationPage } from '../pages/automationExercise/PaymentConfirmationPage'; // TC-001
 import { ProductDetailPage } from '../pages/automationExercise/ProductDetailPage'; // TC-005
 import { ShopApiClient } from '../utils/shopApiClient'; // TC-006
+import { test as authTest } from '../fixtures/authenticatedShopPage';
 
   test.describe('E-commerce shopping flow', () => {
     test('TC-SHOP-001 full shopping flow', async ({ page }) => {
@@ -192,21 +193,52 @@ import { ShopApiClient } from '../utils/shopApiClient'; // TC-006
       expect(body.products.some(p => p.name.toLowerCase().includes('top'))).toBe(true);
     });
 
-  test('TC-SHOP-008 POST /searchProduct missing param returns 400', async () => {
-    await epic('API'); await feature('Products API');
-    await story('Missing parameter'); await severity(Severity.MINOR);
-    // TODO
-  });
+    test('TC-SHOP-008 POST /searchProduct missing param returns 400', async ({ request }) => {
+      await epic('API'); await feature('Products API');
+      await story('Missing parameter'); await severity(Severity.MINOR);
 
-  test('TC-SHOP-009 footer subscription shows success', async () => {
-    await epic('Marketing'); await feature('Newsletter');
-    await story('Footer subscription'); await severity(Severity.MINOR);
-    // TODO
-  });
+      const response = await request.post('https://automationexercise.com/api/searchProduct', {
+        form: {},
+      });
 
-  test('TC-SHOP-010 logged-in user redirected from login', async () => {
-    await epic('Auth'); await feature('Session');
-    await story('Redirect logged-in user'); await severity(Severity.MINOR);
-    // TODO
-  });
+      const body = JSON.parse(await response.text());
+
+      // responseCode is in the JSON body, not the HTTP status
+      expect(body.responseCode).toBe(400);
+      expect(body.message).toBeDefined();
+    });
+
+    test('TC-SHOP-009 footer subscription shows success', async ({ page }) => {
+      await epic('Marketing'); await feature('Newsletter');
+      await story('Footer subscription'); await severity(Severity.MINOR);
+
+      const home = new ShopHomePage(page);
+      await home.goto();
+
+      const emailInput = page.getByRole('textbox', { name: 'Your email address' });
+      const subscribeButton = page.locator('#subscribe');
+      const successMessage = page.getByText('You have been successfully subscribed!');
+
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await emailInput.fill('testsubscriber@gmail.com');
+      await subscribeButton.click();
+
+      // Wait strategy: toBeVisible() on the success alert
+      await expect(successMessage).toBeVisible();
+
+      // Verify input is cleared after successful subscription
+      await expect(emailInput).toHaveValue('');
+    });
+
+    authTest('TC-SHOP-010 logged-in user redirected from login', async ({ authenticatedShopPage }) => {
+      await epic('Auth'); await feature('Session');
+      await story('Redirect logged-in user'); await severity(Severity.MINOR);
+
+      await authenticatedShopPage.goto('/login');
+      // Wait strategy: page.waitForURL() for redirect assertion
+      await authenticatedShopPage.waitForURL('/', { timeout: 5000 }).catch(() => null);
+
+      await expect(authenticatedShopPage).toHaveURL('/');
+      await expect(authenticatedShopPage.getByText(/Logged in as/)).toBeVisible();
+    });
 });

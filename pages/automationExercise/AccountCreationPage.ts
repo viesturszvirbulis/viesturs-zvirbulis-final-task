@@ -58,8 +58,9 @@ export class AccountCreationPage extends BaseShopPage { //TC-001, TC-010 (via fi
   async assertAccountCreated() {
     await expect(this.accountCreatedHeading).toBeVisible();
   }
-
+  
   async clickContinue() {
     await this.continueButton.click();
+    await this.page.waitForURL('/');
   }
 }
