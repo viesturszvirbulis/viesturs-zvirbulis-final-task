@@ -1,15 +1,16 @@
 import { test, expect } from '@playwright/test';
 import { epic, feature, story, severity, Severity } from 'allure-js-commons';
 import { generateUser } from '../utils/testData';
-import { ShopHomePage } from '../pages/automationExercise/ShopHomePage';
-import { SignupLoginPage } from '../pages/automationExercise/SignupLoginPage';
-import { AccountCreationPage } from '../pages/automationExercise/AccountCreationPage';
-import { ProductsPage } from '../pages/automationExercise/ProductsPage';
-import { CartPage } from '../pages/automationExercise/CartPage';
-import { CheckoutPage } from '../pages/automationExercise/CheckoutPage';
-import { PaymentPage } from '../pages/automationExercise/PaymentPage';
-import { PaymentConfirmationPage } from '../pages/automationExercise/PaymentConfirmationPage';
-// import { ProductDetailPage } from '../pages/automationExercise/ProductDetailPage';
+import { ShopHomePage } from '../pages/automationExercise/ShopHomePage'; // TC-001, TC-010 (via fixture)
+import { SignupLoginPage } from '../pages/automationExercise/SignupLoginPage'; // TC-001, TC-010 (via fixture)
+import { AccountCreationPage } from '../pages/automationExercise/AccountCreationPage'; // TC-001, TC-010 (via fixture)
+import { ProductsPage } from '../pages/automationExercise/ProductsPage'; // TC-001, TC-002, TC-003, TC-004, TC-005
+import { CartPage } from '../pages/automationExercise/CartPage'; // TC-001, TC-003, TC-004
+import { CheckoutPage } from '../pages/automationExercise/CheckoutPage'; // TC-001
+import { PaymentPage } from '../pages/automationExercise/PaymentPage'; // TC-001
+import { PaymentConfirmationPage } from '../pages/automationExercise/PaymentConfirmationPage'; // TC-001
+import { ProductDetailPage } from '../pages/automationExercise/ProductDetailPage'; // TC-005
+import { ShopApiClient } from '../utils/shopApiClient'; // TC-006
 
   test.describe('E-commerce shopping flow', () => {
     test('TC-SHOP-001 full shopping flow', async ({ page }) => {
@@ -111,29 +112,85 @@ import { PaymentConfirmationPage } from '../pages/automationExercise/PaymentConf
       await expect(rows.nth(1).locator('td.cart_price')).toContainText(secondProductPrice!.trim());
     });
 
-  test('TC-SHOP-004 removing a product updates the cart', async () => {
-    await epic('Shopping'); await feature('Cart');
-    await story('Remove product'); await severity(Severity.NORMAL);
-    // TODO
-  });
+    test('TC-SHOP-004 removing a product updates the cart', async ({ page }) => {
+      await epic('Shopping'); await feature('Cart');
+      await story('Remove product'); await severity(Severity.NORMAL);
 
-  test('TC-SHOP-005 product detail shows correct data', async () => {
-    await epic('Shopping'); await feature('Product Detail');
-    await story('View product info'); await severity(Severity.MINOR);
-    // TODO
-  });
+      const products = new ProductsPage(page);
+      const cart = new CartPage(page);
 
-  test('TC-SHOP-006 GET /productsList returns valid list', async () => {
-    await epic('API'); await feature('Products API');
-    await story('List all products'); await severity(Severity.CRITICAL);
-    // TODO
-  });
+      // Seed: add one product to cart via UI
+      await products.goto();
+      await products.addFirstProductToCart();
+      await page.getByRole('link', { name: 'View Cart' }).click();
 
-  test('TC-SHOP-007 POST /searchProduct returns matching results', async () => {
-    await epic('API'); await feature('Products API');
-    await story('Search products'); await severity(Severity.NORMAL);
-    // TODO
-  });
+      // Verify product is in cart before deleting
+      await cart.assertRowCount(1);
+
+      // Delete the product
+      await cart.deleteFirstItem();
+
+      // Verify cart is empty and page hasn't navigated away
+      await expect(cart.emptyCartMessage).toBeVisible();
+      await expect(page).toHaveURL(/view_cart/);
+    });
+
+    test('TC-SHOP-005 product detail shows correct data', async ({ page }) => {
+      await epic('Shopping'); await feature('Product Detail');
+      await story('View product info'); await severity(Severity.MINOR);
+
+      const products = new ProductsPage(page);
+      const detail = new ProductDetailPage(page);
+
+      await products.goto();
+      await products.clickViewProduct(0);
+
+      await detail.assertProductDetailVisible();
+    });
+
+    test('TC-SHOP-006 GET /productsList returns valid list', async ({ request }) => {
+      await epic('API'); await feature('Products API');
+      await story('List all products'); await severity(Severity.CRITICAL);
+
+      const api = new ShopApiClient(request);
+      const body = await api.getProducts();
+
+      // responseCode is in the JSON body, not the HTTP status
+      expect(body.responseCode).toBe(200);
+      expect(Array.isArray(body.products)).toBe(true);
+      expect(body.products.length).toBeGreaterThan(0);
+
+      // Every product has required fields
+      for (const product of body.products) {
+        expect(product.id).toBeDefined();
+        expect(product.name).toBeDefined();
+        expect(product.price).toBeDefined();
+        expect(product.brand).toBeDefined();
+        expect(product.category).toBeDefined();
+      }
+
+      // All IDs are unique
+      const ids = body.products.map(p => p.id);
+      const uniqueIds = new Set(ids);
+      expect(uniqueIds.size).toBe(ids.length);
+    });
+
+    test('TC-SHOP-007 POST /searchProduct returns matching results', async ({ request }) => {
+      await epic('API'); await feature('Products API');
+      await story('Search products'); await severity(Severity.NORMAL);
+
+      const api = new ShopApiClient(request);
+      const body = await api.searchProducts('top');
+
+      expect(body.responseCode).toBe(200);
+      expect(Array.isArray(body.products)).toBe(true);
+      expect(body.products.length).toBeGreaterThan(0);
+
+      // Note: the site's search API returns some non-matching results (e.g. "Little Girls Mr. Panda Shirt",
+      // "Colour Blocked Shirt – Sky Blue") so we assert at least one result contains the keyword
+      // rather than asserting all do, consistent with the approach taken in TC-SHOP-002.
+      expect(body.products.some(p => p.name.toLowerCase().includes('top'))).toBe(true);
+    });
 
   test('TC-SHOP-008 POST /searchProduct missing param returns 400', async () => {
     await epic('API'); await feature('Products API');

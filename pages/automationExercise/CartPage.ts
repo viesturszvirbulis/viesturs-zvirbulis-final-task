@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BaseShopPage } from './BaseShopPage';
 
-export class CartPage extends BaseShopPage {
+export class CartPage extends BaseShopPage { //TC-001, TC-003, TC-004
   readonly cartRows: Locator;
   readonly proceedToCheckoutButton: Locator;
   readonly emptyCartMessage: Locator;
@@ -22,7 +22,7 @@ export class CartPage extends BaseShopPage {
   }
 
   async deleteFirstItem() {
-    await this.cartRows.first().locator('.cart_delete a').click();
+    await this.cartRows.first().locator('.cart_quantity_delete').click();
   }
 
   async getRowCount(): Promise<number> {

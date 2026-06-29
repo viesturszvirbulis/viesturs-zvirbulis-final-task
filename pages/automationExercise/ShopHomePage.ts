@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BaseShopPage } from './BaseShopPage';
 
-export class ShopHomePage extends BaseShopPage {
+export class ShopHomePage extends BaseShopPage { //TC-001, TC-010 (via fixture)
   readonly signupLoginLink: Locator;
   readonly loggedInAsText: Locator;
   readonly consentButton: Locator;

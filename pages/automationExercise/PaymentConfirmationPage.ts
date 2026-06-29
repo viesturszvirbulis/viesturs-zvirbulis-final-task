@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BaseShopPage } from './BaseShopPage';
 
-export class PaymentConfirmationPage extends BaseShopPage {
+export class PaymentConfirmationPage extends BaseShopPage { //TC-001
   readonly orderPlacedHeading: Locator;
 
   constructor(page: Page) {

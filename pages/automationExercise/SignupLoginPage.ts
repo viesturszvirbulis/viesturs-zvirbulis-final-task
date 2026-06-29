@@ -1,7 +1,7 @@
 import { Locator, Page } from '@playwright/test';
 import { BaseShopPage } from './BaseShopPage';
 
-export class SignupLoginPage extends BaseShopPage {
+export class SignupLoginPage extends BaseShopPage { //TC-001, TC-010 (via fixture)
   readonly nameInput: Locator;
   readonly emailInput: Locator;
   readonly signupButton: Locator;

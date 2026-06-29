@@ -35,7 +35,7 @@ export interface ShopUser {
   mobileNumber: string;
 }
 
-export class ShopApiClient {
+export class ShopApiClient { //TC-006, TC-007, TC-008
   constructor(private readonly request: APIRequestContext) {}
 
   async getProducts(): Promise<ProductsResponse> {

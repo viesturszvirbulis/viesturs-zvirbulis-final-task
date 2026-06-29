@@ -1,7 +1,7 @@
 import { Locator, Page } from '@playwright/test';
 import { BaseShopPage } from './BaseShopPage';
 
-export class ProductsPage extends BaseShopPage {
+export class ProductsPage extends BaseShopPage { //TC-001, TC-002, TC-003, TC-004, TC-005
   readonly productCards: Locator;
   readonly searchInput: Locator;
   readonly searchButton: Locator;

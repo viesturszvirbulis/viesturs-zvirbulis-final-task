@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BaseShopPage } from './BaseShopPage';
 import { ShopUser } from '../../utils/shopApiClient';
 
-export class AccountCreationPage extends BaseShopPage {
+export class AccountCreationPage extends BaseShopPage { //TC-001, TC-010 (via fixture)
   readonly passwordInput: Locator;
   readonly daySelect: Locator;
   readonly monthSelect: Locator;

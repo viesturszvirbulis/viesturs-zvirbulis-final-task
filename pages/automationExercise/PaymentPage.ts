@@ -1,7 +1,7 @@
 import { Locator, Page } from '@playwright/test';
 import { BaseShopPage } from './BaseShopPage';
 
-export class PaymentPage extends BaseShopPage {
+export class PaymentPage extends BaseShopPage { //TC-001
   readonly nameOnCard: Locator;
   readonly cardNumber: Locator;
   readonly cvc: Locator;
